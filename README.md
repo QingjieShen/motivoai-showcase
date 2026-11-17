@@ -4,6 +4,8 @@
 
 From March to November 2026 I built MotivoAI on my own. It is an AI media platform for car dealerships: it turns the photos staff take on the lot into studio-quality listings, makes videos from them, and gives the team an AI agent they can talk to. I found the problems with dealers, decided what to build, designed it, wrote the code with Claude Code, shipped it to the web, iOS and Android, and measured what happened.
 
+Section 4 is a second, smaller product: **Atelier**, a prototype that turns an interior designer's hand-measured sketches and AutoCAD drawings into checked floor plans and a 3D walkthrough.
+
 The code is private because MotivoAI is a commercial product. This page shows the product, the decisions behind it and the numbers. I'm glad to walk through the code live on a screen share.
 
 | | |
@@ -102,6 +104,40 @@ Website changes and promotions follow the same rule: Movo proposes, a person pub
 **The process decision.** A tour goes stale the first time someone ships without updating it, so the tour is part of "done". The project's rules, which Claude Code follows, say every user-visible feature ships with its tip in the same change. The tests fail if a tip points at a button that no longer exists.
 
 **Next to measure:** how many people finish each screen's tips, and whether toured features get used more than the rest.
+
+---
+
+## 4. Atelier: from a hand-drawn sketch to a floor plan and 3D (prototype)
+
+**The problem.** A residential interior designer in China measures every house by hand on paper and draws it in AutoCAD. Before he can design anything, the same house gets drawn again, and the numbers have to be checked by eye.
+
+![From a hand-measured sketch to a checked plan and a 3D model](images/atelier-sketch-to-3d.jpg)
+
+*The sketch here is made up for this page. The flow and the screens are the real app.*
+
+**What I decided**
+
+- **Let AI do only what it does reliably.** In testing, models that read a whole sketch at once (ByteDance's Seed and Alibaba's Qwen) put real numbers on the wrong walls. So the work is split:
+  - The designer traces the rooms on the photo, which takes seconds and needs no AI.
+  - The AI only finds the handwritten numbers.
+  - Plain code matches each number to its wall, flags likely misreads (75750 read for 5750), and fills a missing length from the room's other sides.
+- **Check, don't guess.** Every plan is checked in code: dimension chains that don't add up (a 70 mm gap on the sample house), wall thicknesses nobody has confirmed, rooms that overlap. The designer confirms each one; nothing is silently "fixed".
+- **Built for his machine and his tools.** The interface is in Chinese and the app works offline. It runs on his 2012 MacBook, reads his AutoCAD files in the app without uploading them, and exports DXF that AutoCAD and the Chinese CAD tools open. The AI key stays in the macOS Keychain.
+
+| | |
+|---|---|
+| ![Tracing rooms on the sketch; the plan builds on the right](images/atelier-tracing.jpg) | ![The plan check: items the designer must confirm](images/atelier-plan-check.jpg) |
+
+**What I built, in about a week:**
+- Import of AutoCAD drawings that recognizes walls, windows, doors, columns, stairs, beams and ceilings.
+- The sketch reader.
+- A 3D walkthrough with stairs and lighting.
+- DXF export.
+- 47 automated tests.
+
+On the designer's two real drawing sets, the recognized walls matched every dimension mark on both floors of one house. On the other house they matched 46 of 58, and the other 12 point where the drawing itself has no line.
+
+**Where it stands:** a prototype the designer hasn't started using yet. **Next to measure:** the time from a sketch to a confirmed plan on one real house, and how many numbers he has to correct.
 
 ---
 
